@@ -20,7 +20,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/stickers.test.js"
+    "test": "node --test test/stickers.test.js test/tool.test.js"
   },
   "keywords": [
     "dsh",

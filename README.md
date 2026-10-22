@@ -47,6 +47,11 @@ plugin_manager  action: install_bundle  target: <本仓库绝对路径>
 npm test     # node --test，纯逻辑，不联网
 ```
 
+两个实现上的坑，改的时候别踩回去：
+
+- **不要 `import` `@deepseek-ai/*` 框架包。** 本插件是从 profile 里 `link:` 到源码目录的，裸包名会从源码目录往上找、找不到（Node 解析符号链接后按真实路径算）。所以 `lib/index.js` 直接用 `ctx.tools.register({ name, description, parameters, output, execute })` 注册裸定义，`parameters` / `output.schema` 写标准 JSON Schema——和 MCP 服务器注册工具是同一种形状。
+- **改插件代码要重启 DSH 才生效。** 宿主进程按 ESM 缓存已经导入过的模块，新会话也吃不到改后的代码。改 `cordis.patch.yml`（预设定义）不需要重装，但同样要重启宿主；`cordis.patch.yml` 改完想立刻验证就重装一次 bundle 更稳。
+
 ## 致谢与许可
 
 - 角色设定参考 [Neko3000/deepseek-whalechan](https://github.com/Neko3000/deepseek-whalechan)。
