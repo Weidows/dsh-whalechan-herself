@@ -36,6 +36,23 @@ async function registered() {
   return definition
 }
 
+/**
+ * execute 的返回值必须严格落在 output.schema 里：schema 是 additionalProperties:false，
+ * 多一个没声明的字段 Host 就整条判 invalid output（sticker 就因为漏声明 scene 全挂过）。
+ */
+function assertConforms(schema, value, path = 'value') {
+  if (schema.type !== 'object' && schema.type !== 'array') return
+  if (schema.type === 'array') {
+    value.forEach((item, index) => assertConforms(schema.items, item, `${path}[${String(index)}]`))
+    return
+  }
+  for (const [key, item] of Object.entries(value)) {
+    assert.ok(schema.properties[key], `${path}.${key} is not a declared property`)
+    assertConforms(schema.properties[key], item, `${path}.${key}`)
+  }
+  for (const key of schema.required ?? []) assert.ok(key in value, `${path}.${key} is required`)
+}
+
 test('apply 注册一个裸定义（不依赖 dsh-tools），并跑通 execute → render', async () => {
   const definition = await registered()
   assert.equal(definition.name, 'sticker')
@@ -43,6 +60,7 @@ test('apply 注册一个裸定义（不依赖 dsh-tools），并跑通 execute �
   assert.equal(typeof definition.output.render, 'function')
 
   const value = await definition.execute({ scene: '摸鱼', count: 1 })
+  assertConforms(definition.output.schema, value)
   assert.equal(value.matched, true)
   assert.equal(value.stickers[0].name, '摸鱼的 DeepSeek 娘')
 
@@ -54,6 +72,7 @@ test('apply 注册一个裸定义（不依赖 dsh-tools），并跑通 execute �
 test('没有参数时也能跑（随机给一张）', async () => {
   const definition = await registered()
   const value = await definition.execute({})
+  assertConforms(definition.output.schema, value)
   assert.equal(value.stickers.length, 1)
   assert.equal(value.matched, true)
 })
