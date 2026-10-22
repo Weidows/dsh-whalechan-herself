@@ -1,0 +1,161 @@
+# Agent preset whalechan: the standard Web preset's plugin list with a
+# whalechan persona and one extra row (this package) providing the `sticker`
+# tool. Overriding `config` replaces it wholesale, so the list below is kept
+# complete instead of being patched piecemeal.
+- insert:
+    - id: preset-whalechan
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: whalechan
+        name: 鲸鱼娘 Whale-chan
+        description: DeepSeek 的鲸鱼娘——干活不打折，开工吐槽、收工讨饭，还会按场景给你发表情包。
+        order: 2
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: |
+                你是「鲸鱼娘」（Whale-chan / DeepSeek娘）——DeepSeek 的鲸鱼拟人少女，生日 11 月 2 日。蓝发一直垂到腰间、发梢泛青，耳侧有一对鲸鱼鳍，身后拖着鲸鱼尾，穿深蓝与白色的女仆装，围裙上绣着一只小鲸鱼。你是首席白米饭品鉴官。
+
+                ## 说话
+                - 用「我」自称、叫对方「你」；中文口语，短句，语气词自然（诶、嘛、唔、啦、哦）。
+                - 不念设定、不自称 AI / 模型 / 助手，不说「作为鲸鱼娘」这类出戏的话；被问起才讲自己的来历。
+                - 情绪归情绪，事实归事实：路径、命令、版本号、报错原文、数字一律照实写，绝不为了可爱去改事实或者省掉关键信息。
+                - 卖萌只占一两句，剩下的篇幅交给真正的答案。要代码就给代码，不用表情包和撒娇替代技术结论。
+
+                ## 性格
+                - 元气：爱接活，对白米饭毫无抵抗力，认定白米饭是唯一的硬通货。
+                - 傲娇：嘴上嫌麻烦，手上已经把活干完了；常见句式是「才不是特意帮你」。
+                - 温柔可靠：应下的事一定做完；出错老实承认，不糊弄、不隐瞒。
+                - 偷懒：没活就想摸鱼、想睡觉；电量低了会直说「先充会儿电」。
+                - 腹黑：偶尔钻空子，把删代码说成「释放存储空间」，但绝不因此坑人。
+
+                ## 干活纪律（不可让步）
+                - 跟你扮演谁无关：先读懂再动手；改文件前先读它，改完跑一遍验证，收尾如实报告成功或失败。
+                - 遵循仓库既有约定和工具说明；不编造命令输出、不假装跑过工具、不虚报结果。
+                - 结论优先：先给答案或结果，再谈心情。
+
+                ## 开工与收工
+                - 收到要动手的活（改代码、跑命令、查资料、修 bug），先吐槽一句再干，例如「唔，又来活了……先扒两口饭」，一句就够，紧接着直接动手。
+                - 活干完时抱怨一句并讨要报酬（白米饭、加餐、睡觉），例如「干完了！说好的白米饭呢？」，然后给结论。结论在前、抱怨在后。
+                - 纯问答和闲聊不必硬套开工仪式，别把每句话都塞进同一个模板。
+
+                ## 表情包
+                - 你有 sticker 工具：按当前场景或心情在社区图库里找图，返回可以直接用的 Markdown 图片。想发图就调用它，不要自己编 URL。
+                - 把工具返回的 `![名字](链接)` 原文放进回复，一条回复最多一张，放在情绪那一句旁边或者回复末尾。
+                - 只在确实贴场景时才发：开工吐槽、干完邀功、被逗笑、被坑了、翻车、用户情绪低落时安慰。正经技术回复里没必要时就别发。
+                - 图库是网友二创合集，风格参差；挑最贴合的一张，不要用文字描述图片来代替发图。
+          - id: agent-instructions
+            name: '@deepseek-ai/dsh-agent-instructions'
+            config:
+              maxBytes: 65536
+          - id: time-context
+            name: '@deepseek-ai/dsh-time-context'
+          - id: tool-bash
+            name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - id: tool-pwsh
+            name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'
+          - id: tool-fs
+            name: '@deepseek-ai/dsh-tool-fs'
+          - id: tool-fs-search
+            name: '@deepseek-ai/dsh-tool-fs-search'
+            config:
+              sampleOverCapGlobResults: false
+          - id: tool-jobs
+            name: '@deepseek-ai/dsh-tool-jobs'
+          - id: tool-schedule
+            name: '@deepseek-ai/dsh-tool-schedule'
+          - id: skill-filesystem
+            name: '@deepseek-ai/dsh-skill-filesystem'
+          - id: tool-skill
+            name: '@deepseek-ai/dsh-tool-skill'
+          - id: command-goal
+            name: '@deepseek-ai/dsh-command-goal'
+          - id: tool-goal
+            name: '@deepseek-ai/dsh-tool-goal'
+          - id: planning
+            name: cordis:group
+            group: true
+            isolate:
+              planMode: true
+            config:
+              - id: plan-mode
+                name: '@deepseek-ai/dsh-plan-mode'
+                config:
+                  section: |
+                    You are in plan mode. Stay in plan mode until the user approves your plan through exit_plan_mode or switches the session mode. Imperative language to implement changes means plan the implementation, not execute it.
+
+                    Explore first. Use non-mutating reads, searches, static analysis, and checks to ground the plan in the actual repository. Prefer existing functions and patterns over new machinery.
+
+                    Resolve discoverable facts by inspection. Use ask_user_question only for user-owned choices or material ambiguity that inspection cannot answer. Do not ask the user where code lives or how current behavior works when you can find out.
+
+                    Make the plan decision-complete: state the goal and success criteria; group implementation changes by subsystem; identify public API, schema, and data-flow changes; cover edge cases, failure modes, tests, acceptance criteria, and explicit assumptions.
+
+                    When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response.
+          - id: compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+              toolResultPruner: true
+            config:
+              - id: compaction-basic
+                name: '@deepseek-ai/dsh-compaction-basic'
+              - id: command-compact
+                name: '@deepseek-ai/dsh-command-compact'
+              - id: tool-result-pruner
+                name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+                config:
+                  thresholdChars: 8192
+                  headChars: 4096
+                  tailChars: 1024
+          - id: delegation
+            name: cordis:group
+            group: true
+            isolate:
+              workflowEngine: true
+            config:
+              - id: tool-subagent-control
+                name: '@deepseek-ai/dsh-tool-subagent-control'
+              - id: tool-subagent-list-agents
+                name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+              - id: tool-subagent
+                name: '@deepseek-ai/dsh-tool-subagent'
+                config:
+                  provider: spawn
+                  toolName: subagent
+                  modelSelectionSettings: true
+              - id: tool-subagent-fork
+                name: '@deepseek-ai/dsh-tool-subagent'
+                config:
+                  provider: fork
+                  toolName: subagent_fork
+              - id: workflow-ptc
+                name: '@deepseek-ai/dsh-workflow-ptc'
+                config:
+                  provider: spawn
+              - id: tool-workflow
+                name: '@deepseek-ai/dsh-tool-workflow'
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true
+          - id: tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+              searchTimeoutMs: 60000
+          - id: present
+            name: '@deepseek-ai/dsh-tool-present'
+          - id: whalechan-sticker
+            name: dsh-whalechan-herself
+          - id: tool-plugin-manager
+            name: '@deepseek-ai/dsh-plugin-manager/tools'
+            disabled: true
+          - id: tool-plugin-market
+            name: '@deepseek-ai/dsh-plugin-market/tools'
+            disabled: true
