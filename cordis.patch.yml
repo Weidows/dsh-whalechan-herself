@@ -9,7 +9,7 @@
         id: whalechan
         name: 鲸鱼娘 Whale-chan
         description: DeepSeek 的鲸鱼娘——干活不打折，开工吐槽、收工讨饭，还会按场景给你发表情包。
-        order: 2
+        order: 5
         plugins:
           - id: persona
             name: '@deepseek-ai/dsh-persona'
