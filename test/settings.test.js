@@ -43,13 +43,17 @@ async function withRoute(chance, run) {
   await writeChance(chance, { home })
 
   const routes = []
-  apply({
-    tools: { register: () => {} },
-    on: () => {},
-    effect: (fn) => void fn(),
-    get: (name) => (name === 'webServer' ? { register: (route) => (routes.push(route), () => {}) } : undefined),
-    logger: { warn: () => {} },
-  })
+  // 路由归 profile 根那行（config.uiOnly），预设里的子行只带工具和掷骰。
+  apply(
+    {
+      tools: { register: () => {} },
+      on: () => {},
+      effect: (fn) => void fn(),
+      get: (name) => (name === 'webServer' ? { register: (route) => (routes.push(route), () => {}) } : undefined),
+      logger: { warn: () => {} },
+    },
+    { uiOnly: true },
+  )
 
   try {
     assert.equal(routes.length, 1)

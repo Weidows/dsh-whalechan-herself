@@ -163,3 +163,9 @@
           - id: tool-plugin-market
             name: '@deepseek-ai/dsh-plugin-market/tools'
             disabled: true
+    # 设置页那一页必须挂在 profile 根上：0.2.1 的客户端模块只扫 profile 级 loader 行，
+    # 预设里的子行不会产生 client bundle。uiOnly 让它只带配置路由，不塞工具和掷骰。
+    - id: whalechan-settings
+      name: dsh-whalechan-herself
+      config:
+        uiOnly: true

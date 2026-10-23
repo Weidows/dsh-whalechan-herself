@@ -6,6 +6,7 @@
  *   3. apply() 真的往 settings.section 里塞了一页「鲸鱼娘」。
  */
 import assert from 'node:assert/strict'
+import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import test from 'node:test'
@@ -14,11 +15,17 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const source = await readFile(join(root, 'lib/client.js'), 'utf8')
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
+const patch = await readFile(join(root, 'cordis.patch.yml'), 'utf8')
 
 test('bundle 不是 ESM，且 id 与包名一致', () => {
   assert.doesNotMatch(source, /^\s*(?:import|export)\s/m)
+  // 少了 dsh.bundle.patch，宿主会整包 skip：预设不出现、工具不注册（0.2.1 起）。
+  assert.equal(pkg.dsh?.bundle?.patch, './cordis.patch.yml')
+  assert.ok(existsSync(join(root, pkg.dsh.bundle.patch)), 'dsh.bundle.patch 指向的补丁文件必须存在')
   assert.equal(pkg.dsh?.client?.platform, 'web')
   assert.equal(pkg.exports?.['./client'], './lib/client.js')
+  // 设置页那页只由 profile 根行（config.uiOnly）带出来：预设子行不产生 client bundle。
+  assert.match(patch, /uiOnly: true/)
 
   let captured
   new Function('window', source)({ __ModuleLoader__: { load: (entry) => (captured = entry) } })
