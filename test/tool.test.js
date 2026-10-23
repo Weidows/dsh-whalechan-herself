@@ -23,7 +23,7 @@ const archive = {
   ],
 }
 
-/** 最小 ctx：只要 tools.register，其余用不到。 */
+/** 最小 ctx：只要 tools.register / on / effect / get，其余用不到。 */
 async function registered() {
   const home = await mkdtemp(join(tmpdir(), 'whalechan-tool-'))
   const file = cacheFile(home)
@@ -32,7 +32,13 @@ async function registered() {
   process.env.DSH_HOME = home
 
   let definition
-  apply({ tools: { register: (value) => void (definition = value) } })
+  apply({
+    tools: { register: (value) => void (definition = value) },
+    on: () => {},
+    effect: (fn) => void fn(),
+    get: () => undefined,
+    logger: { warn: () => {} },
+  })
   return definition
 }
 
