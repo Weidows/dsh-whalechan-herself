@@ -1,6 +1,6 @@
 {
   "name": "dsh-whalechan-herself",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "DSH Agent 预设：鲸鱼娘（DeepSeek娘）——完整干活能力 + 人设，开工吐槽、收工讨饭，按概率发表情包（设置页可调）。",
   "type": "module",
   "main": "lib/index.js",
@@ -21,7 +21,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/stickers.test.js test/tool.test.js test/chance.test.js test/roll.test.js test/settings.test.js"
+    "test": "node --test test/stickers.test.js test/tool.test.js test/chance.test.js test/roll.test.js test/settings.test.js test/client.test.js"
   },
   "keywords": [
     "dsh",
@@ -42,17 +42,8 @@
     "dsh": ">=0.2.0"
   },
   "dsh": {
-    "manifestVersion": 1,
-    "bundle": {
-      "patch": "./cordis.patch.yml"
-    },
     "client": {
-      "platform": "web",
-      "inject": [
-        "@deepseek-ai/dsh-client-runtime",
-        "@deepseek-ai/dsh-client-ui-settings",
-        "@deepseek-ai/dsh-client-ui-settings-plugins"
-      ]
+      "platform": "web"
     }
   }
 }
