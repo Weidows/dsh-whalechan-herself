@@ -26,6 +26,9 @@ test('bundle 不是 ESM，且 id 与包名一致', () => {
   assert.equal(pkg.exports?.['./client'], './lib/client.js')
   // 设置页那页只由 profile 根行（config.uiOnly）带出来：预设子行不产生 client bundle。
   assert.match(patch, /uiOnly: true/)
+  // persona 要两段：prefix 装身份，suffix 落在系统提示最后一段——收尾格式靠尾部位置才压得住。
+  assert.match(patch, /^\s+suffix: \|$/m)
+  assert.match(patch, /进度小结/)
 
   let captured
   new Function('window', source)({ __ModuleLoader__: { load: (entry) => (captured = entry) } })

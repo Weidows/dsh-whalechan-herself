@@ -1,6 +1,6 @@
 {
   "name": "dsh-whalechan-herself",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "DSH Agent 预设：鲸鱼娘（DeepSeek娘）——完整干活能力 + 人设，开工吐槽、收工讨饭，按概率发表情包（设置页可调）。",
   "type": "module",
   "main": "lib/index.js",

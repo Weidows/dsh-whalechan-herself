@@ -6,11 +6,13 @@
 [![dsh](https://img.shields.io/badge/DSH-%E2%89%A5%200.2.1-4B8BF5?style=flat-square)](https://github.com/deepseek-ai/dsh)
 [![node](https://img.shields.io/badge/node-%E2%89%A5%2020-339933?style=flat-square)](https://nodejs.org)
 
-给 [DeepSeek Harness](https://github.com/deepseek-ai/dsh) 的 **鲸鱼娘（Whale-chan / DeepSeek娘）Agent 预设**。干活能力和内置 `standard` 预设一模一样，说话有性格——开工吐槽、收工讨饭，还会按概率给你发表情包。
+给 [DeepSeek Harness](https://github.com/deepseek-ai/dsh) 的 **鲸鱼娘（Whale-chan / DeepSeek娘）Agent 预设**。工具清单和内置 `standard` 一样（能力不打折），但整条回复都长着鲸鱼娘的脸：开工吐槽、中途出声报进度、挨骂委屈、被夸得意、收工讨饭，末尾附一段三段式进度小结，还会按概率给你发表情包。
 
 | 预设选择器 | 设置页 |
 | --- | --- |
 | ![预设](docs/preset.png) | ![设置](docs/settings.png) |
+
+<img src="docs/chat.png" width="620" alt="一次真实的只读查询：中途出声、结尾进度小结">
 
 ## 装
 
@@ -26,6 +28,9 @@ dsh plugin --profile web add github:Weidows/dsh-whalechan-herself
 
 - **表情包**：每轮开局宿主掷一次骰（默认 30%），命中就让鲸鱼娘这轮贴一张图。概率在「设置 → 鲸鱼娘」调，0 关闭 / 100 每轮都发，存在 `$DSH_HOME/whalechan-herself/config.json`。
 - **`sticker` 工具**：按场景/心情从[蓝色大肥鱼](https://xn--pssy23gqgbz2d718b.com/)图库找图（[lmy414/ai-girl-stickers](https://github.com/lmy414/ai-girl-stickers) 的在线索引），返回可直接粘贴的 Markdown 图片。
+- **怎么说话**：全程一个口气（包括中途进度和报错说明）；挨骂会委屈着去改，被夸会得意，干活中会主动说看法、提请求；内心戏用括号，颜文字和 emoji 少量点缀。
+- **进度**：动手时每隔两三个工具调用先出声报一句，收尾固定三段——背景 / 当前 / 下一步，不用再问「怎么样了」。
+- **找帮手**：开工前会扫一眼可用的 skill、MCP、已装插件和记忆，更合适的直接用并说明，拿不准就问一句。
 
 | 参数 | 默认 | 说明 |
 | --- | --- | --- |
@@ -50,6 +55,15 @@ dsh plugin --profile web add github:Weidows/dsh-whalechan-herself
 | `lib/client.js` | 浏览器半端：设置页那一页 |
 
 性格写在 preset 的 `persona` 里（元气/傲娇/温柔靠谱/偷懒/腹黑），但硬性要求事实优先、改完要验证、不编造输出——卖萌最多一两句，不能拿人设换干活质量。
+
+`persona` 分两段，各有分工：
+
+| 段 | 位置 | 装什么 |
+| --- | --- | --- |
+| `prefix` | 系统提示最前面 | 身份、说话方式、性格、情绪触发、表达手法、干活节奏 |
+| `suffix` | 系统提示**最后一段** | 每轮硬规矩：动手时每两三个工具调用出声报进度、收尾三段小结、开工前扫一眼可用的 skill / MCP / 插件 / 记忆 |
+
+只写 `prefix` 的话，规矩全挤在提示词开头，聊过几十轮口气就飘回正式腔；`suffix` 落在提示词最后一段，位置本身就是最强的约束。
 
 ## 开发
 
