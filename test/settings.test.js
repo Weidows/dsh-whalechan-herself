@@ -56,10 +56,12 @@ async function withRoute(chance, run) {
   )
 
   try {
-    assert.equal(routes.length, 1)
-    assert.equal(routes[0].path, ROUTE)
-    assert.equal(routes[0].kind, 'exact')
-    await run(routes[0].handler, home)
+    // config.json + diary.json 两条都归 profile 根那行（config.uiOnly）。
+    assert.equal(routes.length, 2)
+    const config = routes.find((route) => route.path === ROUTE)
+    assert.ok(config, `必须有 ${ROUTE}`)
+    assert.equal(config.kind, 'exact')
+    await run(config.handler, home)
   } finally {
     if (previous === undefined) delete process.env.DSH_HOME
     else process.env.DSH_HOME = previous
@@ -72,7 +74,7 @@ test('GET 读当前设置', async () => {
     const res = fakeRes()
     await handler({ method: 'GET' }, res)
     assert.equal(res.status, 200)
-    assert.deepEqual(res.body, { ok: true, chance: 45, custom: '' })
+    assert.deepEqual(res.body, { ok: true, chance: 45, custom: '', memHome: '' })
   })
 })
 
@@ -80,7 +82,7 @@ test('POST 落盘并钳在 0-100', async () => {
   await withRoute(30, async (handler, home) => {
     const ok = fakeRes()
     await handler(postReq('{"chance":"55"}'), ok)
-    assert.deepEqual(ok.body, { ok: true, chance: 55, custom: '' })
+    assert.deepEqual(ok.body, { ok: true, chance: 55, custom: '', memHome: '' })
     assert.equal(await readChance({ home }), 55)
 
     const over = fakeRes()
@@ -125,16 +127,22 @@ test('自定义设定注册成人设段，挂在 persona 后缀前一位并现�
       logger: { warn: () => {} },
     })
 
-    assert.equal(sections.length, 1)
-    assert.equal(sections[0].name, CUSTOM_SECTION)
-    assert.equal(sections[0].order, 10199)
-    // 空设定整段丢掉，不凭空多一个小标题。
-    assert.equal(sections[0].text(), '')
+    // 现在挂两段：自定义设定 + 日记快照（日记段在它前一位）。
+    assert.equal(sections.length, 2)
+    const custom = sections.find((section) => section.name === CUSTOM_SECTION)
+    const diary = sections.find((section) => section.name === 'whalechan:diary')
+    assert.ok(custom)
+    assert.ok(diary)
+    assert.equal(custom.order, 10199)
+    assert.equal(diary.order, 10198)
+    // 空设定整段丢掉，不凭空多一个小标题；空日记同样。
+    assert.equal(custom.text(), '')
+    assert.equal(diary.text(), '')
 
     await writeChance(66.6, { home })
     await writeSettings({ custom: '你叫阿鲸，喊我老板。' }, { home })
-    assert.match(sections[0].text(), /你叫阿鲸/)
-    assert.match(sections[0].text(), /以这里为准/)
+    assert.match(custom.text(), /你叫阿鲸/)
+    assert.match(custom.text(), /以这里为准/)
   } finally {
     if (previous === undefined) delete process.env.DSH_HOME
     else process.env.DSH_HOME = previous

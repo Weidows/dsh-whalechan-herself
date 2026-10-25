@@ -23,7 +23,7 @@ const archive = {
   ],
 }
 
-/** 最小 ctx：只要 tools.register / on / effect / get，其余用不到。 */
+/** 最小 ctx：按名字收集工具定义（apply 会注册 sticker 和 diary 两个）。 */
 async function registered() {
   const home = await mkdtemp(join(tmpdir(), 'whalechan-tool-'))
   const file = cacheFile(home)
@@ -31,15 +31,15 @@ async function registered() {
   await writeFile(file, JSON.stringify(archive))
   process.env.DSH_HOME = home
 
-  let definition
+  const tools = {}
   apply({
-    tools: { register: (value) => void (definition = value) },
+    tools: { register: (value) => void (tools[value.name] = value) },
     on: () => {},
     effect: (fn) => void fn(),
     get: () => undefined,
     logger: { warn: () => {} },
   })
-  return definition
+  return tools
 }
 
 /**
@@ -59,9 +59,11 @@ function assertConforms(schema, value, path = 'value') {
   for (const key of schema.required ?? []) assert.ok(key in value, `${path}.${key} is required`)
 }
 
-test('apply 注册一个裸定义（不依赖 dsh-tools），并跑通 execute → render', async () => {
-  const definition = await registered()
+test('apply 注册 sticker + diary 两个裸定义（不依赖 dsh-tools），并跑通 execute → render', async () => {
+  const tools = await registered()
+  const definition = tools.sticker
   assert.equal(definition.name, 'sticker')
+  assert.ok(tools.diary, 'diary 工具也要注册')
   assert.equal(definition.parameters.type, 'object')
   assert.equal(typeof definition.output.render, 'function')
 
@@ -75,10 +77,10 @@ test('apply 注册一个裸定义（不依赖 dsh-tools），并跑通 execute �
   assert.match(text.text, /!\[摸鱼的 DeepSeek 娘\]\(https:\/\//)
 })
 
-test('没有参数时也能跑（随机给一张）', async () => {
-  const definition = await registered()
-  const value = await definition.execute({})
-  assertConforms(definition.output.schema, value)
-  assert.equal(value.stickers.length, 1)
+test('没有参数时也能跑（默认给 3 张候选）', async () => {
+  const tools = await registered()
+  const value = await tools.sticker.execute({})
+  assertConforms(tools.sticker.output.schema, value)
+  assert.equal(value.stickers.length, 1, '图库只有 1 张，全给')
   assert.equal(value.matched, true)
 })

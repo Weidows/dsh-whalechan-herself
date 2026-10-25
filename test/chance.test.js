@@ -52,7 +52,7 @@ test('读写往返，坏 JSON 不炸', async () => {
 test('自定义设定：读写往返、截断、同步读，且写概率不会冲掉它', async () => {
   const home = await mkdtemp(join(tmpdir(), 'whalechan-custom-'))
   try {
-    assert.deepEqual(await readSettings({ home }), { chance: DEFAULT_CHANCE, custom: '' })
+    assert.deepEqual(await readSettings({ home }), { chance: DEFAULT_CHANCE, custom: '', memHome: '' })
     assert.equal(readCustomSync({ home }), '')
 
     await writeSettings({ custom: '  你叫阿鲸，喊我老板。\r\n别自称 AI。 ' }, { home })
