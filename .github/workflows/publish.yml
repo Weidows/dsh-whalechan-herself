@@ -1,0 +1,53 @@
+name: publish
+
+# release.yml 已经在 main 上按 package.json 的版本自动建 Release；
+# 这个 workflow 在 Release 发布后把它推到 npm。
+# 需要的仓库 secret：NPM_TOKEN（npmjs.com 的 Automation token）。
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # npm publish --provenance 需要
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Check release tag matches package.json
+        if: github.event_name == 'release'
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag="${{ github.event.release.tag_name }}"
+          if [ "$tag" != "v$version" ]; then
+            echo "::error::release $tag does not match v$version in package.json"
+            exit 1
+          fi
+
+      - name: Test (skipped when the package has no test script)
+        run: npm test --if-present
+
+      - name: Skip when this version is already on npm
+        id: published
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          if npm view "$name@$version" version >/dev/null 2>&1; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "$name@$version is already published, nothing to do"
+          fi
+
+      - name: Publish
+        if: steps.published.outputs.already != 'true'
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

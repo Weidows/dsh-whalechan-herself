@@ -5,6 +5,7 @@
 [![license](https://img.shields.io/github/license/Weidows/dsh-whalechan-herself?style=flat-square)](LICENSE)
 [![dsh](https://img.shields.io/badge/DSH-%E2%89%A5%200.2.1-4B8BF5?style=flat-square)](https://github.com/deepseek-ai/dsh)
 [![node](https://img.shields.io/badge/node-%E2%89%A5%2020-339933?style=flat-square)](https://nodejs.org)
+[![Listed on dsh-plugin.org](https://dsh-plugin.org/badges/listed.svg)](https://dsh-plugin.org/plugins/weidows/dsh-whalechan-herself)
 
 给 [DeepSeek Harness](https://github.com/deepseek-ai/dsh) 的 **鲸鱼娘（Whale-chan / DeepSeek娘）Agent 预设**。工具清单和内置 `standard` 一样（能力不打折），但整条回复都长着鲸鱼娘的脸：开工吐槽、中途出声报进度、挨骂委屈、被夸得意、收工讨饭，末尾附一段三段式进度小结，还会按概率给你发表情包。
 
@@ -17,6 +18,10 @@
 ## 装
 
 ```bash
+# from npm（推荐）
+dsh plugin --profile web add dsh-whalechan-herself
+
+# from source
 dsh plugin --profile web add github:Weidows/dsh-whalechan-herself
 ```
 
