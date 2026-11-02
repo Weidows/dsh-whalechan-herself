@@ -1,9 +1,9 @@
 name: release
 
 # 版本号一改、push 到 main：先建 Release（tag = v<version>），紧接着发到 npm。
-# 放在同一个 workflow 里，是因为用 github.token 建出来的 Release 不会再触发
-# publish.yml（GitHub 会掐掉 GITHUB_TOKEN 造成的连锁 workflow）。publish.yml 留着手动补发。
-# 需要的仓库 secret：NPM_TOKEN —— npmjs.com 的 Automation token（auth-and-writes 账号只有它能绕 2FA）。
+# 发布走 npm Trusted Publishing（OIDC），仓库里不再有任何 npm 凭证 —— 不需要 NPM_TOKEN。
+# npm 上该包已绑定：github · Weidows/dsh-whalechan-herself · release.yml · allow: npm publish
+# 这个文件名是信任契约的一部分 —— 改名 = 立即 ENEEDAUTH。
 on:
   push:
     branches: [main]
@@ -11,7 +11,7 @@ on:
 
 permissions:
   contents: write
-  id-token: write # npm publish --provenance 需要
+  id-token: write # OIDC：npm 用它换短时令牌，provenance 自动生成
 
 jobs:
   release:
@@ -21,8 +21,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+
+      # trusted publishing 要 npm >= 11.5.1，别依赖镜像自带的版本
+      - run: npm install -g npm@^11.15.0 && npm --version
 
       - name: Test (skipped when the package has no test script)
         run: npm test --if-present
@@ -35,9 +38,9 @@ jobs:
           tag="v$version"
           if gh release view "$tag" >/dev/null 2>&1; then
             echo "release $tag already exists, nothing to do"
-            exit 0
+          else
+            gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --generate-notes
           fi
-          gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --generate-notes
 
       - name: Skip when this version is already on npm
         id: published
@@ -49,19 +52,8 @@ jobs:
             echo "$name@$version is already published, nothing to do"
           fi
 
-      - name: Check the NPM_TOKEN secret
-        id: token
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -n "$NODE_AUTH_TOKEN" ]; then
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "NPM_TOKEN is not set, skipping npm publish"
-          fi
-
+      # 无 NODE_AUTH_TOKEN；无 --provenance（OIDC 自动带）；无 --access public
+      #（package.json 的 publishConfig 已经写了 access + registry）
       - name: Publish to npm
-        if: steps.published.outputs.already != 'true' && steps.token.outputs.ok == 'true'
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        if: steps.published.outputs.already != 'true'
+        run: npm publish
