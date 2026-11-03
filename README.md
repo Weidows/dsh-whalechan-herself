@@ -13,7 +13,9 @@
 | --- | --- |
 | ![预设](docs/preset.png) | ![设置](docs/settings.png) |
 
-<img src="docs/chat.png" width="620" alt="一次真实的只读查询：中途出声、结尾进度小结">
+<img src="docs/chat.png" width="720" alt="一次真实会话：能力表、挑表情包、结尾三段进度小结">
+
+*真跑的一次 12 秒会话：问一句能干什么 → 起表 → 顺手挑张表情包 → 收工三段小结。*
 
 ## 装
 
